@@ -22,6 +22,7 @@ landed on. No login, no API key. Read-only; transport uses Chrome \
 TLS impersonation with a plain-requests fallback (the /arama/ path \
 is slow under impersonation); requests are spaced ~1s apart. Built \
 by Mohammad Abbasi (mohammad-abbasi-sh) — Turkey MCP factory.\
+Built by Mohammad Abbasi (mohammad-abbasi-sh) — https://almanibama.ir · https://mabbasi.ir
 """
 
 
