@@ -11,7 +11,7 @@
   "mcpServers": {
     "hurriyet": {
       "command": "uvx",
-      "args": ["hurriyet-mcp==0.1.0"]
+      "args": ["hurriyet-mcp==0.1.1"]
     }
   }
 }
