@@ -13,7 +13,7 @@ MCP istemcinize ekleyin (stdio):
   "mcpServers": {
     "hurriyet": {
       "command": "uvx",
-      "args": ["hurriyet-mcp"]
+      "args": ["hurriyet-mcp==0.1.0"]
     }
   }
 }
