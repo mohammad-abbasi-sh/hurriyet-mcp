@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+from datetime import datetime, timezone
 
 from mcp.server.fastmcp import FastMCP
 
@@ -26,8 +27,24 @@ Built by Mohammad Abbasi (mohammad-abbasi-sh) — https://almanibama.ir · https
 """
 
 
+_SOURCE = "hurriyet.com.tr"
+_DISCLAIMER = "Unofficial read-only data from hurriyet.com.tr; verify on the site before acting on it."
+
+
+def _envelope() -> dict:
+    return {
+        "fetched_at": datetime.now(timezone.utc).isoformat(),
+        "source": _SOURCE,
+        "disclaimer": _DISCLAIMER,
+    }
+
+
+def _ok(payload: dict) -> str:
+    return json.dumps({**_envelope(), **payload}, ensure_ascii=False)
+
+
 def _err(e: Exception) -> str:
-    return json.dumps({"error": str(e)}, ensure_ascii=False)
+    return _ok({"error": str(e)})
 
 
 def _validate_limit(limit: int, lo: int = 1, hi: int = 30) -> int:
@@ -52,10 +69,7 @@ def hurriyet_get_headlines(section: str = "gundem", limit: int = 10) -> str:
         rows = _N.parse_article_links(_http.fetch_section(s))
     except (ValueError, _http.HurriyetError) as e:
         return _err(e)
-    return json.dumps(
-        {"section": s, "count": len(rows[:limit]), "articles": rows[:limit]},
-        ensure_ascii=False,
-    )
+    return _ok({"section": s, "count": len(rows[:limit]), "articles": rows[:limit]})
 
 
 @mcp.tool()
@@ -68,7 +82,7 @@ def hurriyet_get_article(url: str) -> str:
         art = _N.parse_article_page(_http.fetch_article(url.strip()))
     except (ValueError, _http.HurriyetError) as e:
         return _err(e)
-    return json.dumps({"url": url.strip(), **art}, ensure_ascii=False)
+    return _ok({"url": url.strip(), **art})
 
 
 @mcp.tool()
@@ -85,15 +99,12 @@ def hurriyet_search_news(query: str, limit: int = 10) -> str:
         landed = _http.last_url
     except (ValueError, _http.HurriyetError) as e:
         return _err(e)
-    return json.dumps(
-        {
+    return _ok({
             "query": query.strip(),
             "landed_url": landed,
             "count": len(rows[:limit]),
             "articles": rows[:limit],
-        },
-        ensure_ascii=False,
-    )
+        })
 
 
 @mcp.tool()
@@ -104,9 +115,7 @@ def hurriyet_get_latest(limit: int = 10) -> str:
         rows = _N.parse_article_links(_http.fetch_home())
     except (ValueError, _http.HurriyetError) as e:
         return _err(e)
-    return json.dumps(
-        {"count": len(rows[:limit]), "articles": rows[:limit]}, ensure_ascii=False
-    )
+    return _ok({"count": len(rows[:limit]), "articles": rows[:limit]})
 
 
 @mcp.tool()
@@ -116,7 +125,17 @@ def hurriyet_list_categories() -> str:
         cats = _N.list_categories(_http.fetch_home())
     except (ValueError, _http.HurriyetError) as e:
         return _err(e)
-    return json.dumps({"count": len(cats), "categories": cats}, ensure_ascii=False)
+    return _ok({"count": len(cats), "categories": cats})
+
+
+@mcp.tool()
+def hurriyet_health() -> str:
+    """Check whether hurriyet.com.tr is reachable right now.
+
+    Returns status ok (HTTP 200), blocked (HTTP 403/429 — bot wall or
+    rate limit) or error, plus the HTTP status and the probed URL.
+    One polite request; it does not fetch any listings."""
+    return _ok(_http.health_check())
 
 
 def main() -> None:
